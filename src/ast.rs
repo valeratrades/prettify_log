@@ -182,9 +182,6 @@ pub fn try_assume_array(oneof_raw_map_params_bracks: Vec<MaybeParsed>) -> Result
 pub fn tokens_into_ast(tokens: Vec<Token>) -> Result<TreeKind> {
 	let parens_or_raw = capture_parens(tokens)?;
 	let oneof_raw_map_params_bracks = capture_maps_and_params(parens_or_raw)?;
-	//- [0] is NamedMap?
-	//- [0] is NamedParams?
-	//- [0] is Array?
 	if let Ok(vec_kvp) = try_assume_vec_kvp(oneof_raw_map_params_bracks.clone()) {
 		Ok(TreeKind::VecKvp(vec_kvp))
 	} else if let MaybeParsed::NamedMap(map) = &oneof_raw_map_params_bracks[0]
@@ -195,6 +192,10 @@ pub fn tokens_into_ast(tokens: Vec<Token>) -> Result<TreeKind> {
 		&& oneof_raw_map_params_bracks.len() == 1
 	{
 		return Ok(TreeKind::NamedParams(params.clone()));
+	} else if let MaybeParsed::Bracks(arr) = &oneof_raw_map_params_bracks[0]
+		&& oneof_raw_map_params_bracks.len() == 1
+	{
+		return Ok(TreeKind::Array(arr.clone()));
 	} else {
 		let error_msg = "Could not convert tokens to AST";
 		if oneof_raw_map_params_bracks.len() == 1 {
@@ -258,9 +259,135 @@ mod tests {
 		let tokens = str_into_tokens(input.to_owned())?;
 		let ast = tokens_into_ast(tokens);
 		insta::assert_debug_snapshot!(ast, @r###"
-  Err(
-	// Fails with:
-      "Could not convert tokens to AST",
+  Ok(
+      Array(
+          [
+              NamedParams(
+                  NamedParams {
+                      name: Literal(
+                          "Some",
+                      ),
+                      contents: [
+                          NamedMap(
+                              NamedMap {
+                                  name: Literal(
+                                      "ConceptualOrderPercents",
+                                  ),
+                                  contents: [
+                                      Standard {
+                                          key: Literal(
+                                              "order_type",
+                                          ),
+                                          value: NamedParams(
+                                              NamedParams {
+                                                  name: Literal(
+                                                      "StopMarket",
+                                                  ),
+                                                  contents: [
+                                                      NamedMap(
+                                                          NamedMap {
+                                                              name: Literal(
+                                                                  "ConceptualStopMarket",
+                                                              ),
+                                                              contents: [
+                                                                  Standard {
+                                                                      key: Literal(
+                                                                          "price",
+                                                                      ),
+                                                                      value: Literal(
+                                                                          Literal(
+                                                                              "0.32500047473929544",
+                                                                          ),
+                                                                      ),
+                                                                  },
+                                                              ],
+                                                          },
+                                                      ),
+                                                  ],
+                                              },
+                                          ),
+                                      },
+                                      Standard {
+                                          key: Literal(
+                                              "symbol",
+                                          ),
+                                          value: NamedMap(
+                                              NamedMap {
+                                                  name: Literal(
+                                                      "Symbol",
+                                                  ),
+                                                  contents: [
+                                                      Standard {
+                                                          key: Literal(
+                                                              "base",
+                                                          ),
+                                                          value: Literal(
+                                                              Literal(
+                                                                  "\"ADA\"",
+                                                              ),
+                                                          ),
+                                                      },
+                                                      Standard {
+                                                          key: Literal(
+                                                              "quote",
+                                                          ),
+                                                          value: Literal(
+                                                              Literal(
+                                                                  "\"USDT\"",
+                                                              ),
+                                                          ),
+                                                      },
+                                                      Standard {
+                                                          key: Literal(
+                                                              "market",
+                                                          ),
+                                                          value: Literal(
+                                                              Literal(
+                                                                  "BinanceFutures",
+                                                              ),
+                                                          ),
+                                                      },
+                                                  ],
+                                              },
+                                          ),
+                                      },
+                                      Standard {
+                                          key: Literal(
+                                              "side",
+                                          ),
+                                          value: Literal(
+                                              Literal(
+                                                  "Sell",
+                                              ),
+                                          ),
+                                      },
+                                      Standard {
+                                          key: Literal(
+                                              "qty_percent_of_controlled",
+                                          ),
+                                          value: NamedParams(
+                                              NamedParams {
+                                                  name: Literal(
+                                                      "Percent",
+                                                  ),
+                                                  contents: [
+                                                      Literal(
+                                                          Literal(
+                                                              "1.0",
+                                                          ),
+                                                      ),
+                                                  ],
+                                              },
+                                          ),
+                                      },
+                                  ],
+                              },
+                          ),
+                      ],
+                  },
+              ),
+          ],
+      ),
   )
   "###);
 		Ok(())
