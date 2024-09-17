@@ -56,30 +56,53 @@ pub fn str_into_tokens(input: String) -> Result<Vec<Token>> {
 			continue; // the opening and closing quotes will be appended as part of `_` match arm later.
 		}
 
-		let mut flush_literal_then_push = |t: Token| {
+		let mut flush_literal = || {
 			if !ongoing_literal.is_empty() {
 				tokens.push(Token::Literal(std::mem::take(&mut ongoing_literal)));
 			}
-			tokens.push(t);
 		};
 
 		match c {
 			c if WHITESPACE.contains(&c) => {
-				continue;
+				flush_literal();
 			}
-			'{' => flush_literal_then_push(Token::LCurly),
-			'}' => flush_literal_then_push(Token::RCurly),
-			'[' => flush_literal_then_push(Token::LBrack),
-			']' => flush_literal_then_push(Token::RBrack),
-			'(' => flush_literal_then_push(Token::LParan),
-			')' => flush_literal_then_push(Token::RParan),
+			'{' => {
+				flush_literal();
+				tokens.push(Token::LCurly)
+			}
+			'}' => {
+				flush_literal();
+				tokens.push(Token::RCurly)
+			}
+			'[' => {
+				flush_literal();
+				tokens.push(Token::LBrack)
+			}
+			']' => {
+				flush_literal();
+				tokens.push(Token::RBrack)
+			}
+			'(' => {
+				flush_literal();
+				tokens.push(Token::LParan)
+			}
+			')' => {
+				flush_literal();
+				tokens.push(Token::RParan)
+			}
 			':' =>
 				if iter_chars.next_if(|&x| WHITESPACE.contains(&x)).is_some() {
-					flush_literal_then_push(Token::InnerDelim);
+					{
+						flush_literal();
+						tokens.push(Token::InnerDelim)
+					};
 				},
 			',' =>
 				if iter_chars.next_if(|&x| WHITESPACE.contains(&x)).is_some() {
-					flush_literal_then_push(Token::OuterDelim);
+					{
+						flush_literal();
+						tokens.push(Token::OuterDelim)
+					};
 				},
 			_ => {
 				ongoing_literal.push(c);
