@@ -3,7 +3,7 @@
 [<img alt="crates.io" src="https://img.shields.io/crates/v/prettify_log.svg?color=fc8d62&logo=rust" height="20" style=flat-square>](https://crates.io/crates/prettify_log)
 [<img alt="docs.rs" src="https://img.shields.io/badge/docs.rs-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs&style=flat-square" height="20">](https://docs.rs/prettify_log)
 [<img alt="build status" src="https://img.shields.io/github/actions/workflow/status/valeratrades/prettify_log/ci.yml?branch=master&style=for-the-badge&style=flat-square" height="20">](https://github.com/valeratrades/prettify_log/actions?query=branch%3Amaster) <!--NB: Won't find it if repo is private-->
-![Lines Of Code](https://img.shields.io/badge/LoC-1337-lightblue)
+![Lines Of Code](https://img.shields.io/badge/LoC-1610-lightblue)
 
 <!-- markdownlint-disable -->
 <details>

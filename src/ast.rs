@@ -168,7 +168,9 @@ pub fn try_assume_array(oneof_raw_map_params_bracks: Vec<MaybeParsed>) -> Result
 			MaybeParsed::Raw(Token::Literal(literal)) => Value::Literal(Literal(literal.clone())),
 			MaybeParsed::Bracks(bracks) => Value::Array(bracks.clone()),
 			MaybeParsed::NamedParams(params) => Value::NamedParams(params.clone()),
+			MaybeParsed::Parens(tuple) => Value::UnnamedTuple(tuple.clone()),
 			MaybeParsed::NamedMap(map) => Value::NamedMap(map.clone()),
+			MaybeParsed::Curlies(unnamed_map) => Value::UnnamedMap(unnamed_map.clone()),
 			_ => bail!("Array can only contain `Value` types"),
 		};
 		array_of_values.push(value);
@@ -267,14 +269,285 @@ mod tests {
 	#[test]
 	fn case_2() -> Result<()> {
 		*INIT;
-		let input = r#"parent_position_asset: "ADA", min_qty_any_ordertype: 5.0, left_to_target_notional: 0.320589068252616, side: Sell, dyn_info: PositionProtocolsDynamicInfo({StopEntry: {"dm": Some(ProtocolDynamicInfo { fills: [28.0], protocol_orders: ProtocolOrders { protocol_id: "dm", __orders: [Some(ConceptualOrderPercents { order_type: Market(ConceptualMarket { maximum_slippage_percent: Percent(1.0) }), symbol: Symbol { base: "ADA", quote: "USDT", market: BinanceFutures }, side: Sell, qty_percent_of_controlled: Percent(1.0) })] } })}})
-"#;
+		let input = r#"parent_position_asset: "ADA", min_qty_any_ordertype: 5.0, left_to_target_notional: 0.320589068252616, side: Sell, dyn_info: PositionProtocolsDynamicInfo({StopEntry: {"dm": Some(ProtocolDynamicInfo { fills: [28.0], protocol_orders: ProtocolOrders { protocol_id: "dm", __orders: [Some(ConceptualOrderPercents { order_type: Market(ConceptualMarket { maximum_slippage_percent: Percent(1.0) }), symbol: Symbol { base: "ADA", quote: "USDT", market: BinanceFutures }, side: Sell, qty_percent_of_controlled: Percent(1.0) })] } })}})"#;
 		let tokens = str_into_tokens(input.to_owned())?;
 		let ast = tokens_into_ast(tokens);
 		insta::assert_debug_snapshot!(ast, @r###"
-  Err(
-	// Fails with:
-      "Array can only contain `Value` types",
+  Ok(
+      VecKvp(
+          [
+              Standard {
+                  key: Literal(
+                      "parent_position_asset",
+                  ),
+                  value: Literal(
+                      Literal(
+                          "\"ADA\"",
+                      ),
+                  ),
+              },
+              Standard {
+                  key: Literal(
+                      "min_qty_any_ordertype",
+                  ),
+                  value: Literal(
+                      Literal(
+                          "5.0",
+                      ),
+                  ),
+              },
+              Standard {
+                  key: Literal(
+                      "left_to_target_notional",
+                  ),
+                  value: Literal(
+                      Literal(
+                          "0.320589068252616",
+                      ),
+                  ),
+              },
+              Standard {
+                  key: Literal(
+                      "side",
+                  ),
+                  value: Literal(
+                      Literal(
+                          "Sell",
+                      ),
+                  ),
+              },
+              Standard {
+                  key: Literal(
+                      "dyn_info",
+                  ),
+                  value: NamedParams(
+                      NamedParams {
+                          name: Literal(
+                              "PositionProtocolsDynamicInfo",
+                          ),
+                          contents: [
+                              UnnamedMap(
+                                  [
+                                      Standard {
+                                          key: Literal(
+                                              "StopEntry",
+                                          ),
+                                          value: UnnamedMap(
+                                              [
+                                                  Standard {
+                                                      key: Literal(
+                                                          "\"dm\"",
+                                                      ),
+                                                      value: NamedParams(
+                                                          NamedParams {
+                                                              name: Literal(
+                                                                  "Some",
+                                                              ),
+                                                              contents: [
+                                                                  NamedMap(
+                                                                      NamedMap {
+                                                                          name: Literal(
+                                                                              "ProtocolDynamicInfo",
+                                                                          ),
+                                                                          contents: [
+                                                                              Standard {
+                                                                                  key: Literal(
+                                                                                      "fills",
+                                                                                  ),
+                                                                                  value: Array(
+                                                                                      [
+                                                                                          Literal(
+                                                                                              Literal(
+                                                                                                  "28.0",
+                                                                                              ),
+                                                                                          ),
+                                                                                      ],
+                                                                                  ),
+                                                                              },
+                                                                              Standard {
+                                                                                  key: Literal(
+                                                                                      "protocol_orders",
+                                                                                  ),
+                                                                                  value: NamedMap(
+                                                                                      NamedMap {
+                                                                                          name: Literal(
+                                                                                              "ProtocolOrders",
+                                                                                          ),
+                                                                                          contents: [
+                                                                                              Standard {
+                                                                                                  key: Literal(
+                                                                                                      "protocol_id",
+                                                                                                  ),
+                                                                                                  value: Literal(
+                                                                                                      Literal(
+                                                                                                          "\"dm\"",
+                                                                                                      ),
+                                                                                                  ),
+                                                                                              },
+                                                                                              Standard {
+                                                                                                  key: Literal(
+                                                                                                      "__orders",
+                                                                                                  ),
+                                                                                                  value: Array(
+                                                                                                      [
+                                                                                                          NamedParams(
+                                                                                                              NamedParams {
+                                                                                                                  name: Literal(
+                                                                                                                      "Some",
+                                                                                                                  ),
+                                                                                                                  contents: [
+                                                                                                                      NamedMap(
+                                                                                                                          NamedMap {
+                                                                                                                              name: Literal(
+                                                                                                                                  "ConceptualOrderPercents",
+                                                                                                                              ),
+                                                                                                                              contents: [
+                                                                                                                                  Standard {
+                                                                                                                                      key: Literal(
+                                                                                                                                          "order_type",
+                                                                                                                                      ),
+                                                                                                                                      value: NamedParams(
+                                                                                                                                          NamedParams {
+                                                                                                                                              name: Literal(
+                                                                                                                                                  "Market",
+                                                                                                                                              ),
+                                                                                                                                              contents: [
+                                                                                                                                                  NamedMap(
+                                                                                                                                                      NamedMap {
+                                                                                                                                                          name: Literal(
+                                                                                                                                                              "ConceptualMarket",
+                                                                                                                                                          ),
+                                                                                                                                                          contents: [
+                                                                                                                                                              Standard {
+                                                                                                                                                                  key: Literal(
+                                                                                                                                                                      "maximum_slippage_percent",
+                                                                                                                                                                  ),
+                                                                                                                                                                  value: NamedParams(
+                                                                                                                                                                      NamedParams {
+                                                                                                                                                                          name: Literal(
+                                                                                                                                                                              "Percent",
+                                                                                                                                                                          ),
+                                                                                                                                                                          contents: [
+                                                                                                                                                                              Literal(
+                                                                                                                                                                                  Literal(
+                                                                                                                                                                                      "1.0",
+                                                                                                                                                                                  ),
+                                                                                                                                                                              ),
+                                                                                                                                                                          ],
+                                                                                                                                                                      },
+                                                                                                                                                                  ),
+                                                                                                                                                              },
+                                                                                                                                                          ],
+                                                                                                                                                      },
+                                                                                                                                                  ),
+                                                                                                                                              ],
+                                                                                                                                          },
+                                                                                                                                      ),
+                                                                                                                                  },
+                                                                                                                                  Standard {
+                                                                                                                                      key: Literal(
+                                                                                                                                          "symbol",
+                                                                                                                                      ),
+                                                                                                                                      value: NamedMap(
+                                                                                                                                          NamedMap {
+                                                                                                                                              name: Literal(
+                                                                                                                                                  "Symbol",
+                                                                                                                                              ),
+                                                                                                                                              contents: [
+                                                                                                                                                  Standard {
+                                                                                                                                                      key: Literal(
+                                                                                                                                                          "base",
+                                                                                                                                                      ),
+                                                                                                                                                      value: Literal(
+                                                                                                                                                          Literal(
+                                                                                                                                                              "\"ADA\"",
+                                                                                                                                                          ),
+                                                                                                                                                      ),
+                                                                                                                                                  },
+                                                                                                                                                  Standard {
+                                                                                                                                                      key: Literal(
+                                                                                                                                                          "quote",
+                                                                                                                                                      ),
+                                                                                                                                                      value: Literal(
+                                                                                                                                                          Literal(
+                                                                                                                                                              "\"USDT\"",
+                                                                                                                                                          ),
+                                                                                                                                                      ),
+                                                                                                                                                  },
+                                                                                                                                                  Standard {
+                                                                                                                                                      key: Literal(
+                                                                                                                                                          "market",
+                                                                                                                                                      ),
+                                                                                                                                                      value: Literal(
+                                                                                                                                                          Literal(
+                                                                                                                                                              "BinanceFutures",
+                                                                                                                                                          ),
+                                                                                                                                                      ),
+                                                                                                                                                  },
+                                                                                                                                              ],
+                                                                                                                                          },
+                                                                                                                                      ),
+                                                                                                                                  },
+                                                                                                                                  Standard {
+                                                                                                                                      key: Literal(
+                                                                                                                                          "side",
+                                                                                                                                      ),
+                                                                                                                                      value: Literal(
+                                                                                                                                          Literal(
+                                                                                                                                              "Sell",
+                                                                                                                                          ),
+                                                                                                                                      ),
+                                                                                                                                  },
+                                                                                                                                  Standard {
+                                                                                                                                      key: Literal(
+                                                                                                                                          "qty_percent_of_controlled",
+                                                                                                                                      ),
+                                                                                                                                      value: NamedParams(
+                                                                                                                                          NamedParams {
+                                                                                                                                              name: Literal(
+                                                                                                                                                  "Percent",
+                                                                                                                                              ),
+                                                                                                                                              contents: [
+                                                                                                                                                  Literal(
+                                                                                                                                                      Literal(
+                                                                                                                                                          "1.0",
+                                                                                                                                                      ),
+                                                                                                                                                  ),
+                                                                                                                                              ],
+                                                                                                                                          },
+                                                                                                                                      ),
+                                                                                                                                  },
+                                                                                                                              ],
+                                                                                                                          },
+                                                                                                                      ),
+                                                                                                                  ],
+                                                                                                              },
+                                                                                                          ),
+                                                                                                      ],
+                                                                                                  ),
+                                                                                              },
+                                                                                          ],
+                                                                                      },
+                                                                                  ),
+                                                                              },
+                                                                          ],
+                                                                      },
+                                                                  ),
+                                                              ],
+                                                          },
+                                                      ),
+                                                  },
+                                              ],
+                                          ),
+                                      },
+                                  ],
+                              ),
+                          ],
+                      },
+                  ),
+              },
+          ],
+      ),
   )
   "###);
 		Ok(())
