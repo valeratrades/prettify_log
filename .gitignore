@@ -21,6 +21,10 @@ functions.sh
 ## Vim
 *.sw[po]
 
+## Nix
+**/flake.lock
+result
+
 ## MacOS
 .DS_Store
 *.dylib
@@ -51,7 +55,6 @@ venv/
 
 
 ## Rust
-**/Cargo.lock
 .cargo/config.toml
 .cargo/config
 **/**.pending-snap
