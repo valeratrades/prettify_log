@@ -34,6 +34,7 @@
 
         cargoLock.lockFile = ./Cargo.lock;
         src = pkgs.lib.cleanSource ./.;
+				nativeBuildInputs = [ toolchain ];
       };
     };
 }
