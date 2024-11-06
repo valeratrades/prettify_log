@@ -11,6 +11,7 @@
       rust-overlay,
     }:
     let
+			#TODO!: use [genAttrs](<https://ayats.org/blog/no-flake-utils>) to generalize to other systems, like "aarch64-linux" and darwin ~/g/time_rs/flake.nix for reference of same thing implemented with flake-parts
       system = "x86_64-linux";
       pkgs = import nixpkgs {
         inherit system;
