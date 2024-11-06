@@ -22,7 +22,7 @@ functions.sh
 *.sw[po]
 
 ## Nix
-**/flake.lock
+#**/flake.lock
 result
 
 ## MacOS
