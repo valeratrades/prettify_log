@@ -28,6 +28,7 @@
         ];
         RUST_SRC_PATH = "${toolchain}/lib/rustlib/src/rust/library";
       };
+			# for this to pick up the correct toolchain, it requires `flake.lock` to be commited
       packages.${system}.default = pkgs.rustPlatform.buildRustPackage rec {
         pname = manifest.name;
         version = manifest.version;
