@@ -22,8 +22,8 @@ functions.sh
 *.sw[po]
 
 ## Nix
-#**/flake.lock
 result
+.direnv/
 
 ## MacOS
 .DS_Store
