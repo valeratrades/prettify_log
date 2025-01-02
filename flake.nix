@@ -1,42 +1,50 @@
 {
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.url      = "github:NixOS/nixpkgs/nixos-unstable";
     rust-overlay.url = "github:oxalica/rust-overlay";
+    flake-utils.url  = "github:numtide/flake-utils";
   };
 
-  outputs =
-    {
-      self,
-      nixpkgs,
-      rust-overlay,
-    }:
-    let
-			#TODO!: use [genAttrs](<https://ayats.org/blog/no-flake-utils>) to generalize to other systems, like "aarch64-linux" and darwin ~/g/time_rs/flake.nix for reference of same thing implemented with flake-parts
-      system = "x86_64-linux";
-      pkgs = import nixpkgs {
-        inherit system;
-        overlays = [ rust-overlay.overlays.default ];
-      };
-      toolchain = pkgs.rust-bin.fromRustupToolchainFile ./.cargo/rust-toolchain.toml;
-			manifest = (pkgs.lib.importTOML ./Cargo.toml).package;
-    in
-    {
-      devShells.${system}.default = pkgs.mkShell {
-        packages = [
-          toolchain
-          # We want the unwrapped version, "rust-analyzer" (wrapped) comes with nixpkgs' toolchain
-          pkgs.rust-analyzer-unwrapped
-        ];
-        RUST_SRC_PATH = "${toolchain}/lib/rustlib/src/rust/library";
-      };
-			# for this to pick up the correct toolchain, it requires `flake.lock` to be commited
-      packages.${system}.default = pkgs.rustPlatform.buildRustPackage rec {
-        pname = manifest.name;
-        version = manifest.version;
+  outputs = { nixpkgs, rust-overlay, flake-utils, ... }:
+    flake-utils.lib.eachDefaultSystem (system:
+      let
+        overlays = builtins.trace "flake.nix sourced" [ (import rust-overlay) ];
+        pkgs = import nixpkgs {
+          inherit system overlays;
+        };
+      in
+      {
+				packages =
+					let
+						manifest = (pkgs.lib.importTOML ./Cargo.toml).package;
+					in
+						{
+						default = pkgs.rustPlatform.buildRustPackage rec {
+							pname = manifest.name;
+							version = manifest.version;
 
-        cargoLock.lockFile = ./Cargo.lock;
-        src = pkgs.lib.cleanSource ./.;
-				nativeBuildInputs = [ toolchain ];
-      };
-    };
+							buildInputs = with pkgs; [
+								openssl
+								openssl.dev
+							];
+							nativeBuildInputs = with pkgs; [ pkg-config ];
+							env.PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
+
+							cargoLock.lockFile = ./Cargo.lock;
+							src = pkgs.lib.cleanSource ./.;
+						};
+					};
+
+        devShells.default = with pkgs; mkShell {
+					stdenv = pkgs.stdenvAdapters.useMoldLinker pkgs.stdenv;
+          packages = [
+						mold-wrapped
+            openssl
+            pkg-config
+            (rust-bin.fromRustupToolchainFile ./.cargo/rust-toolchain.toml)
+          ];
+        };
+      }
+    );
 }
+

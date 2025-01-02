@@ -1,4 +1,2 @@
 [toolchain]
 channel = "nightly"
-components = [ "rustfmt", "rust-src" ] #NB: must include these to be used from flake.nix
-profile = "default"
