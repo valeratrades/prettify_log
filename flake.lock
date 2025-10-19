@@ -103,6 +103,20 @@
         "type": "github"
       }
     },
+    "nixpkgs_4": {
+      "locked": {
+        "lastModified": 1760596604,
+        "narHash": "sha256-J/i5K6AAz/y5dBePHQOuzC7MbhyTOKsd/GLezSbEFiM=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "3cbe716e2346710d6e1f7c559363d14e11c32a43",
+        "type": "github"
+      },
+      "original": {
+        "id": "nixpkgs",
+        "type": "indirect"
+      }
+    },
     "pre-commit-hooks": {
       "inputs": {
         "flake-compat": "flake-compat",
@@ -129,7 +143,7 @@
         "nixpkgs": "nixpkgs",
         "pre-commit-hooks": "pre-commit-hooks",
         "rust-overlay": "rust-overlay",
-        "workflow-parts": "workflow-parts"
+        "v-utils": "v-utils"
       }
     },
     "rust-overlay": {
@@ -165,18 +179,19 @@
         "type": "github"
       }
     },
-    "workflow-parts": {
+    "v-utils": {
+      "inputs": {
+        "nixpkgs": "nixpkgs_4"
+      },
       "locked": {
-        "dir": ".github/workflows/nix-parts",
-        "lastModified": 1736278182,
-        "narHash": "sha256-lQLV2Iac9Z6bcvcinLVp5FwtgpoX0bqcU9X9G0vE85E=",
+        "lastModified": 1760827333,
+        "narHash": "sha256-bmo3Cd3vB1FR8hVIl7Hs9u1FfDWHJQi4ACvsihKQAto=",
         "owner": "valeratrades",
         "repo": ".github",
-        "rev": "a8489aceffe2b804080aea28a07ed32f207c8cd0",
+        "rev": "a39d3790f4e5c8f9b664b8121b7fe23aa4e8e1b9",
         "type": "github"
       },
       "original": {
-        "dir": ".github/workflows/nix-parts",
         "owner": "valeratrades",
         "repo": ".github",
         "type": "github"
