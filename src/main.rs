@@ -1,9 +1,8 @@
 #![feature(stmt_expr_attributes)]
 #![allow(internal_features)] // what is the point of this flag? The only way to use internal_features right now is to explicitly opt-in
 #![feature(fmt_internals)]
-#![feature(let_chains)]
 use ast::tokens_into_ast;
-use clap::{command, Parser};
+use clap::Parser;
 use clap_stdin::MaybeStdin;
 use color_eyre::eyre::Result;
 use lexer::str_into_tokens;

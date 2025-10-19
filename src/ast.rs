@@ -1,4 +1,4 @@
-use color_eyre::eyre::{bail, ensure, Result};
+use color_eyre::eyre::{Result, bail, ensure};
 
 use crate::{lexer::Token, tree_kinds::*};
 

@@ -1,4 +1,4 @@
-use color_eyre::eyre::{bail, Result};
+use color_eyre::eyre::{Result, bail};
 use eyre::ensure;
 
 pub static WHITESPACE: [char; 3] = [' ', '\n', '\t'];

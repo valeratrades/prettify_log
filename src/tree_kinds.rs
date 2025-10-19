@@ -170,7 +170,7 @@ mod tests {
 
 	fn get_ast(input: &'static str) -> Result<String> {
 		let tokens = str_into_tokens(input.to_owned())?;
-		let dont_cut_my_newlines_insta = format!("_\n{}\n_", get_ast(input)?);
+		let dont_cut_my_newlines_insta = format!("_\n{}\n_", tokens_into_ast(tokens)?);
 		Ok(dont_cut_my_newlines_insta)
 	}
 
@@ -178,7 +178,11 @@ mod tests {
 	fn simple_vec_kvp() -> Result<()> {
 		*INIT;
 		let input = r#"key: value"#;
-		insta::assert_snapshot!(get_ast(input)?, @r###"  "key": value"###);
+		insta::assert_snapshot!(get_ast(input)?, @r#"
+		_
+		  "key": value
+		_
+		"#);
 		Ok(())
 	}
 
@@ -186,12 +190,14 @@ mod tests {
 	fn named_map() -> Result<()> {
 		*INIT;
 		let input = r#"Config{ name: "question", answer: 42 }"#;
-		insta::assert_snapshot!(get_ast(input)?, @r###"
-  Config{
-    "name": "question",
-    "answer": 42
-  }
-  "###);
+		insta::assert_snapshot!(get_ast(input)?, @r#"
+		_
+		Config{
+		  "name": "question",
+		  "answer": 42
+		}
+		_
+		"#);
 		Ok(())
 	}
 
@@ -199,7 +205,11 @@ mod tests {
 	fn named_params() -> Result<()> {
 		*INIT;
 		let input = r#"Function(arg1, arg2, "string arg")"#;
-		insta::assert_snapshot!(get_ast(input)?, @r###"Function(arg1, arg2, "string arg")"###);
+		insta::assert_snapshot!(get_ast(input)?, @r#"
+		_
+		Function(arg1, arg2, "string arg")
+		_
+		"#);
 		Ok(())
 	}
 
@@ -216,72 +226,73 @@ mod tests {
 						name: (an, unnamed, tuple),
 						..
 				}"#;
-		insta::assert_snapshot!(get_ast(input)?, @r###"
-  MyMap{
-    "array": [
-      1,
-      2,
-      3
-    ],
-    "unnamed_map":     "a": "value",
-      "b": NestedFunction(1, 2, 3)  ,
-    "name": [
-      an,
-      unnamed,
-      tuple
-    ],
-    ..
-  }
-  "###);
+		insta::assert_snapshot!(get_ast(input)?, @r#"
+		_
+		MyMap{
+		  "array": [
+		    1,
+		    2,
+		    3
+		  ],
+		  "unnamed_map":     "a": "value",
+		    "b": NestedFunction(1, 2, 3)  ,
+		  "name": [
+		    an,
+		    unnamed,
+		    tuple
+		  ],
+		  ..
+		}
+		_
+		"#);
 		Ok(())
 	}
 
 	#[test]
 	fn log() -> Result<()> {
 		let input = r#"hub_rx: Receiver { shared: Shared { value: RwLock(PhantomData<std::sync::rwlock::RwLock<discretionary_engine::exchange_apis::hub::HubToExchange>>, RwLock { data: HubToExchange { key: 0191cc99-b03a-7003-ab4d-ef05bef629ad, orders: [Order { id: PositionOrderId { position_id: 0191cc99-b039-7960-96d5-3230a8a0a12a, protocol_id: "dm", ordinal: 0 }, order_type: Market, symbol: Symbol { base: "ADA", quote: "USDT", market: BinanceFutures }, side: Buy, qty_notional: 30.78817733990148 }, None] } }), version: Version(2), is_closed: false, ref_count_rx: 1 }, version: Version(2) }, last_reported_fill_key: 00000000-0000-0000-0000-000000000000, currently_deployed: RwLock { data: [], poisoned: false, .. }"#;
-		let dont_cut_my_newlines_insta = format!("_\n{}\n_", get_ast(input)?);
 
-		insta::assert_snapshot!(dont_cut_my_newlines_insta, @r###"
-  _
-    "hub_rx": Receiver{
-      "shared": Shared{
-        "value": RwLock(PhantomData<stdsyncrwlockRwLock<discretionary_engineexchange_apishubHubToExchange>>, RwLock{
-          "data": HubToExchange{
-            "key": 0191cc99-b03a-7003-ab4d-ef05bef629ad,
-            "orders": [
-              Order{
-                "id": PositionOrderId{
-                  "position_id": 0191cc99-b039-7960-96d5-3230a8a0a12a,
-                  "protocol_id": "dm",
-                  "ordinal": 0              
-                },
-                "order_type": Market,
-                "symbol": Symbol{
-                  "base": "ADA",
-                  "quote": "USDT",
-                  "market": BinanceFutures              
-                },
-                "side": Buy,
-                "qty_notional": 30.78817733990148            
-              },
-              None
-            ]        
-          }      
-        }),
-        "version": Version(2),
-        "is_closed": false,
-        "ref_count_rx": 1    
-      },
-      "version": Version(2)  
-    },
-    "last_reported_fill_key": 00000000-0000-0000-0000-000000000000,
-    "currently_deployed": RwLock{
-      "data": [],
-      "poisoned": false,
-      ..  
-    }
-  _
-  "###);
+		insta::assert_snapshot!(get_ast(input)?, @r#"
+		_
+		  "hub_rx": Receiver{
+		    "shared": Shared{
+		      "value": RwLock(PhantomData<stdsyncrwlockRwLock<discretionary_engineexchange_apishubHubToExchange>>, RwLock{
+		        "data": HubToExchange{
+		          "key": 0191cc99-b03a-7003-ab4d-ef05bef629ad,
+		          "orders": [
+		            Order{
+		              "id": PositionOrderId{
+		                "position_id": 0191cc99-b039-7960-96d5-3230a8a0a12a,
+		                "protocol_id": "dm",
+		                "ordinal": 0              
+		              },
+		              "order_type": Market,
+		              "symbol": Symbol{
+		                "base": "ADA",
+		                "quote": "USDT",
+		                "market": BinanceFutures              
+		              },
+		              "side": Buy,
+		              "qty_notional": 30.78817733990148            
+		            },
+		            None
+		          ]        
+		        }      
+		      }),
+		      "version": Version(2),
+		      "is_closed": false,
+		      "ref_count_rx": 1    
+		    },
+		    "version": Version(2)  
+		  },
+		  "last_reported_fill_key": 00000000-0000-0000-0000-000000000000,
+		  "currently_deployed": RwLock{
+		    "data": [],
+		    "poisoned": false,
+		    ..  
+		  }
+		_
+		"#);
 		Ok(())
 	}
 
@@ -289,9 +300,7 @@ mod tests {
 	fn some_api_response() -> Result<()> {
 		let input = r#"{"result":{"vipCoinList":[{"list":[{"borrowable":true,"collateralRatio":"0.98","currency":"BTC","hourlyBorrowRate":"0.0000004195840000","liquidationOrder":"2","marginCollateral":true,"maxBorrowingAmount":"300"}],"vipLevel":"No VIP"}]},"retCode":0,"retExtInfo":"{}","retMsg":"success","time":1760832531168}"#;
 
-		let dont_cut_my_newlines_insta = format!("_\n{}\n_", get_ast(input)?);
-
-		insta::assert_snapshot!(dont_cut_my_newlines_insta, @r###"
+		insta::assert_snapshot!(get_ast(input)?, @r###"
   _
     "hub_rx": Receiver{
       "shared": Shared{
@@ -333,6 +342,5 @@ mod tests {
   _
   "###);
 		Ok(())
-
 	}
 }
