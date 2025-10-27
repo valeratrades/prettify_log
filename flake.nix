@@ -65,11 +65,10 @@
               														cp -f ${(v-utils.hooks.preCommit) { inherit pkgs pname; }} ./.git/hooks/custom.sh
 
               														mkdir -p ./.cargo
-              														cp -f ${(v-utils.files.rust.rustfmt {inherit pkgs;})} ./rustfmt.toml
-              														cp -f ${(v-utils.files.rust.deny {inherit pkgs;})} ./deny.toml
-              														cp -f ${(v-utils.files.rust.config {inherit pkgs;})} ./.cargo/config.toml
-              														cp -f ${(v-utils.files.rust.toolchain {inherit pkgs;})} ./.cargo/rust-toolchain.toml
               														cp -f ${(v-utils.files.gitignore { inherit pkgs; langs = ["rs"];})} ./.gitignore
+              														cp -f ${(v-utils.files.rust.config {inherit pkgs;})} ./.cargo/config.toml
+              														cp -f ${(v-utils.files.rust.rustfmt {inherit pkgs;})} ./rustfmt.toml
+              														cp -f ${(v-utils.files.rust.toolchain {inherit pkgs;})} ./.cargo/rust-toolchain.toml
 
               														cp -f ${readme} ./README.md
               						'';
