@@ -1,29 +1,40 @@
 {
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    rust-overlay.url = "github:oxalica/rust-overlay";
-    flake-utils.url = "github:numtide/flake-utils";
-    pre-commit-hooks.url = "github:cachix/git-hooks.nix";
-    v-utils.url = "github:valeratrades/.github";
+    v_flakes.url = "github:valeratrades/v_flakes?ref=v1.6";
   };
 
-  outputs = { nixpkgs, rust-overlay, flake-utils, pre-commit-hooks, v-utils, ... }:
-    flake-utils.lib.eachDefaultSystem (system:
+  outputs =
+    { self, v_flakes }:
+    let
+      inherit (v_flakes) flake-utils pre-commit-hooks;
+    in
+    flake-utils.lib.eachDefaultSystem (
+      system:
       let
-        overlays = builtins.trace "flake.nix sourced" [ (import rust-overlay) ];
-        pkgs = import nixpkgs {
-          inherit system overlays;
-        };
-        rust = pkgs.rust-bin.selectLatestNightlyWith (toolchain: toolchain.default.override {
-          extensions = [ "rust-src" "rust-analyzer" "rust-docs" "rustc-codegen-cranelift-preview" ];
-        });
-        pre-commit-check = pre-commit-hooks.lib.${system}.run (v-utils.files.preCommit { inherit pkgs; });
+        pkgs = import v_flakes.default_nixpkgs { inherit system; };
+        rust = v_flakes.rs.default_nightly system;
+        pre-commit-check = pre-commit-hooks.lib.${system}.run (v_flakes.files.preCommit { inherit pkgs; });
         manifest = (pkgs.lib.importTOML ./Cargo.toml).package;
         pname = manifest.name;
         stdenv = pkgs.stdenvAdapters.useMoldLinker pkgs.stdenv;
 
-        workflowContents = v-utils.ci { inherit pkgs; lastSupportedVersion = "nightly-2025-10-12"; jobsErrors = [ "rust-tests" ]; jobsWarnings = [ "rust-doc" "rust-clippy" "rust-machete" "rust-sorted" "tokei" ]; };
-        readme = v-utils.readme-fw { inherit pkgs pname; lastSupportedVersion = "nightly-1.92"; rootDir = ./.; licenses = [{ name = "Blue Oak 1.0.0"; outPath = "LICENSE"; }]; badges = [ "msrv" "crates_io" "docs_rs" "loc" "ci" ]; };
+        rs = v_flakes.rs { inherit pkgs rust; };
+        github = v_flakes.github {
+          inherit pkgs pname rs;
+          enable = true;
+          lastSupportedVersion = "nightly-${v_flakes.rs.nightly_version}";
+          jobs.default = true;
+          jobs.warnings.install = { packages = [ "mold" ]; debug = true; };
+        };
+        readme = v_flakes.readme-fw {
+          inherit pkgs pname;
+          lastSupportedVersion = "nightly-1.92";
+          rootDir = ./.;
+          licenses = [{ license = v_flakes.files.licenses.blue_oak; }];
+          badges = [ "msrv" "crates_io" "docs_rs" "loc" "ci" ];
+        };
+
+        combined = v_flakes.utils.combine { inherit rust; modules = [ rs github readme ]; };
       in
       {
         packages =
@@ -35,57 +46,40 @@
             };
           in
           {
-            default = rustPlatform.buildRustPackage rec {
+            default = rustPlatform.buildRustPackage {
               inherit pname;
               version = manifest.version;
 
-              buildInputs = with pkgs; [
-                openssl.dev
-              ];
-              nativeBuildInputs = with pkgs; [ pkg-config ];
+              RUSTC_WRAPPER = ""; # .cargo/config.toml sets sccache, absent in the sandbox
 
               cargoLock.lockFile = ./Cargo.lock;
               src = pkgs.lib.cleanSource ./.;
             };
           };
 
-        devShells.default = with pkgs; mkShell {
-          inherit stdenv;
-          shellHook =
-            pre-commit-check.shellHook +
-            ''
-              														mkdir -p ./.github/workflows
-              														rm -f ./.github/workflows/errors.yml; cp ${workflowContents.errors} ./.github/workflows/errors.yml
-              														rm -f ./.github/workflows/warnings.yml; cp ${workflowContents.warnings} ./.github/workflows/warnings.yml
+        devShells.default =
+          with pkgs;
+          mkShell {
+            inherit stdenv;
+            shellHook =
+              pre-commit-check.shellHook +
+              combined.shellHook +
+              ''
+                cp -f ${(v_flakes.files.treefmt) { inherit pkgs; }} ./.treefmt.toml
+              '';
 
-              														cp -f ${v-utils.files.licenses.blue_oak} ./LICENSE
+            env = {
+              RUST_BACKTRACE = 1;
+              RUST_LIB_BACKTRACE = 0;
+            };
 
-              														cargo -Zscript -q ${v-utils.hooks.appendCustom} ./.git/hooks/pre-commit
-              														cp -f ${(v-utils.hooks.treefmt) {inherit pkgs;}} ./.treefmt.toml
-              														cp -f ${(v-utils.hooks.preCommit) { inherit pkgs pname; }} ./.git/hooks/custom.sh
-
-              														mkdir -p ./.cargo
-              														cp -f ${(v-utils.files.rust.rustfmt {inherit pkgs;})} ./rustfmt.toml
-              														cp -f ${(v-utils.files.rust.deny {inherit pkgs;})} ./deny.toml
-              														cp -f ${(v-utils.files.rust.config {inherit pkgs;})} ./.cargo/config.toml
-              														cp -f ${(v-utils.files.rust.toolchain {inherit pkgs;})} ./.cargo/rust-toolchain.toml
-              														cp -f ${(v-utils.files.gitignore { inherit pkgs; langs = ["rs"];})} ./.gitignore
-
-              														cp -f ${readme} ./README.md
-              						'';
-
-          env = {
-            RUST_BACKTRACE = 1;
-            RUST_LIB_BACKTRACE = 0;
+            packages = [
+              mold
+              rust
+            ]
+            ++ pre-commit-check.enabledPackages
+            ++ combined.enabledPackages;
           };
-
-          packages = [
-            mold-wrapped
-            openssl
-            pkg-config
-            rust
-          ] ++ pre-commit-check.enabledPackages;
-        };
       }
     );
 }
